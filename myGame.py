@@ -25,6 +25,7 @@ HEIGHT = 600
 
 SCREEN = display.set_mode((WIDTH, HEIGHT))
 FONT = FONT_PATH + 'space_invaders.ttf'
+FONT_SIZE = 20
 IMG_NAMES = ['ship', 'mystery',
              'enemy1_1', 'enemy1_2',
              'enemy2_1', 'enemy2_2',
@@ -90,16 +91,19 @@ class MyGame(object):
         self.bulletsShip = []
         self.bulletShip = None
         self.timerForShip = time.get_ticks()
+        self.timerForShipShooting = time.get_ticks()
 
         self.enemy = Enemy()
         self.bulletsEnemy = []
         self.bulletEnemy = None
         self.timerForEnemy = time.get_ticks()
+        self.timerForEnemyShooting = time.get_ticks()
+
 
         self.playerHit = 0;
         self.enemyHit = 0;
-        self.titleTextPlayer = Text(FONT, 20, str("Enemy hit ") + str(self.playerHit), WHITE, 0, 0)
-        self.titleTextEnemy = Text(FONT, 20, str("Player hit ") + str(self.enemyHit), WHITE, WIDTH - 170, HEIGHT - 25)
+        self.titleTextPlayer = Text(FONT, FONT_SIZE, str("Enemy hit ") + str(self.playerHit), WHITE, 0, 0)
+        self.titleTextEnemy = Text(FONT, FONT_SIZE, str("Player hit ") + str(self.enemyHit), WHITE, WIDTH - 170, HEIGHT - 25)
 
     @staticmethod
     def should_exit(evt):
@@ -131,7 +135,7 @@ class MyGame(object):
                 if bulletShip is not None:
                     self.screen.blit(bulletShip.image, bulletShip.rect)
 
-    def updateShip(self):
+    def updateShip(self, current_time):
         if self.player.decision == 0:
             self.player.rect.x += self.player.speed
             if self.player.rect.x > WIDTH - 50:
@@ -140,9 +144,10 @@ class MyGame(object):
             self.player.rect.x -= self.player.speed
             if self.player.rect.x < 0:
                 self.player.rect.x -= self.player.speed * -1
-
         elif self.player.decision == 2:
-            self.shipShooting()
+            if current_time - self.timerForShipShooting > 500:
+                self.shipShooting()
+                self.timerForShipShooting = current_time
 
     def deleteShip(self):
         self.player = None
@@ -157,7 +162,7 @@ class MyGame(object):
             self.enemy.decision = randrange(0, 4)
             self.timerForEnemy += self.enemy.moveEnemyTime
 
-    def updateEnemy(self):
+    def updateEnemy(self, current_time):
         if self.enemy.decision == 0:
             self.enemy.rect.x += self.enemy.speed
             if self.enemy.rect.x > WIDTH - 150:
@@ -166,9 +171,11 @@ class MyGame(object):
             self.enemy.rect.x -= self.enemy.speed
             if self.enemy.rect.x < 150:
                 self.enemy.rect.x -= self.enemy.speed * -1
-
         elif self.enemy.decision == 2:
-            self.enemyShooting()
+            if current_time - self.timerForEnemyShooting > 500:
+                self.enemyShooting()
+                self.timerForEnemyShooting = current_time
+            
 
 
     def enemyShooting(self):
@@ -192,20 +199,22 @@ class MyGame(object):
         #if (x < (x2 + w2) and (x + w) > x2 and y < (y2 + h2) and (h + y) > y2):
         for bulletEnemy in self.bulletsEnemy:
             if self.player.rect.colliderect(bulletEnemy):
+                self.bulletsEnemy.remove(bulletEnemy)
                 self.enemyHit += 1
 
     def collision_check_enemy(self):
         #if (x < (x2 + w2) and (x + w) > x2 and y < (y2 + h2) and (h + y) > y2):
         for bulletShip in self.bulletsShip:
             if self.enemy.rect.colliderect(bulletShip):
+                self.bulletsShip.remove(bulletShip)
                 self.playerHit += 1
     
     def drawUI(self):
         self.screen.blit(self.titleTextPlayer.surface, self.titleTextPlayer.rect)
         self.screen.blit(self.titleTextEnemy.surface, self.titleTextEnemy.rect)
-
-        self.titleTextPlayer.message = str(self.playerHit)
-        self.titleTextEnemy.message = str(self.enemyHit)
+        #text_width, text_height = self.titleTextEnemy.font.size(str(self.titleTextEnemy))
+        self.titleTextPlayer = Text(FONT, FONT_SIZE, str("Enemy hit ") + str(self.enemyHit), WHITE, 0, 0)
+        self.titleTextEnemy = Text(FONT, FONT_SIZE, str("Player hit ") + str(self.playerHit), WHITE, WIDTH - (self.titleTextEnemy.surface.get_width()), HEIGHT - 25)
 
     def main(self):
         while True:
@@ -216,8 +225,9 @@ class MyGame(object):
                 if self.player is not None:
                     self.create_new_ship()
                     self.aiForShip(current_time)
-                    self.updateShip()
+                    self.updateShip(current_time)
 
+                #Bullet running for ship
                 if self.bulletShip is not None:
                     self.updateShipShooting()
                     self.runningBulletShip()
@@ -225,8 +235,9 @@ class MyGame(object):
                 if self.enemy is not None:
                     self.create_enemy()
                     self.aiForEnemy(current_time)
-                    self.updateEnemy()
+                    self.updateEnemy(current_time)
 
+                #Bullet running for enemy
                 if self.bulletsEnemy is not None:
                     self.updateEnemyShooting()
                     self.runningBulletEnemy()
@@ -234,9 +245,6 @@ class MyGame(object):
                 self.collision_check_ship()
                 self.collision_check_enemy()
                 self.drawUI()
-
-                print("self.enemyHit " + str(self.enemyHit))
-                print("self.playerHit " + str(self.playerHit))
 
 
                 for e in event.get():
