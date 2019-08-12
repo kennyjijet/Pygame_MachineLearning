@@ -3,7 +3,12 @@ import pygame
 from os import path
 from os.path import abspath, dirname
 from random import randrange
+#from deep_AI import DeepAI
+import random
+import pandas as pd
 
+#foo = ['a', 'b', 'c', 'd', 'e']
+#print(random.choice(foo))
 
 
 BASE_PATH = abspath(dirname(__file__))
@@ -22,6 +27,16 @@ RED = (237, 28, 36)
 
 WIDTH = 800
 HEIGHT = 600
+
+data_len = 5
+df = pd.DataFrame()
+
+df['x'] = [0,1,1,1,1]
+
+df['w'] = [1.0/data_len for i in range(data_len)]
+s = df['x'] * df['w']
+#print(s)
+
 
 SCREEN = display.set_mode((WIDTH, HEIGHT))
 FONT = FONT_PATH + 'space_invaders.ttf'
@@ -116,7 +131,10 @@ class MyGame(object):
 
     def aiForShip(self, current_time):
         if current_time - self.timerForShip > self.player.moveShipTime:
-            self.player.decision = randrange(0, 4)
+            value = randrange(0, 4)
+            if self.enemyHit > 3: 
+                value = randrange(2, 4)
+            self.player.decision = value
             self.timerForShip += self.player.moveShipTime
 
     def shipShooting(self):
@@ -159,7 +177,11 @@ class MyGame(object):
 
     def aiForEnemy(self, current_time):
         if current_time - self.timerForEnemy > self.enemy.moveEnemyTime:
-            self.enemy.decision = randrange(0, 4)
+            #self.enemy.decision = randrange(0, 4)
+            value = randrange(0, 4)
+            if self.playerHit > 3: 
+                value = randrange(2, 4)
+            self.enemy.decision = value
             self.timerForEnemy += self.enemy.moveEnemyTime
 
     def updateEnemy(self, current_time):
