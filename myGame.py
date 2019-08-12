@@ -131,9 +131,14 @@ class MyGame(object):
 
     def aiForShip(self, current_time):
         if current_time - self.timerForShip > self.player.moveShipTime:
-            value = randrange(0, 4)
-            if self.enemyHit > 3: 
+            if self.enemyHit % 5 == 0 and self.enemyHit % 2 == 0:
+                value = randrange(0, 4)
+            elif self.enemyHit % 5 == 0:
+                value = randrange(0, 3)
+            elif self.enemyHit % 2 == 0:
                 value = randrange(2, 4)
+            else:
+                value = randrange(0, 4)
             self.player.decision = value
             self.timerForShip += self.player.moveShipTime
 
@@ -178,9 +183,15 @@ class MyGame(object):
     def aiForEnemy(self, current_time):
         if current_time - self.timerForEnemy > self.enemy.moveEnemyTime:
             #self.enemy.decision = randrange(0, 4)
-            value = randrange(0, 4)
-            if self.playerHit > 3: 
+            if self.playerHit % 5 == 0 and self.playerHit % 2 == 0:
                 value = randrange(2, 4)
+            elif self.playerHit % 5 == 0:
+                value = randrange(0, 3)
+            elif self.playerHit % 2 == 0:
+                value = randrange(2, 4)
+            else:
+                value = randrange(0, 4)
+
             self.enemy.decision = value
             self.timerForEnemy += self.enemy.moveEnemyTime
 
@@ -197,6 +208,12 @@ class MyGame(object):
             if current_time - self.timerForEnemyShooting > 500:
                 self.enemyShooting()
                 self.timerForEnemyShooting = current_time
+        elif self.enemy.decision == 3:
+            if current_time - self.timerForEnemyShooting > 500:
+                if self.player.rect.x > self.enemy.rect.x:
+                    self.enemy.rect.x += self.enemy.speed
+                else:
+                    self.enemy.rect.x -= self.enemy.speed
             
 
 
